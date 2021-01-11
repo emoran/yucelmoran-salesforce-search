@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="80bfbdd5-d182-4298-81b4-ac1e6bf658d0" >
+		<salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.token}" url="${sfdc.url}"/>
+	</salesforce:sfdc-config>
+	<global-property doc:name="Global Property" doc:id="9fd4db5d-fd8f-4292-9262-fc0683554871" name="env" value="test" />
+	<configuration-properties doc:name="Configuration properties" doc:id="02401158-cab4-46ad-9378-50161c44e84d" file="test.yaml" />
+	
+</mule>
+	

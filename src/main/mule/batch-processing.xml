@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="update-salesforce-records-batch" doc:id="7d33454f-243a-4a0f-951a-20aa00e07b74" >
+		<batch:job jobName="batch-processingBatch_Job" doc:id="16681e5e-99f3-467d-bc5c-5ac609842217" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="258cbec5-4869-4561-812f-7bcb7ea76e97" >
+					<batch:aggregator doc:name="Batch Aggregator - Commit 200" doc:id="c7e8f2b4-d823-4d9a-82ee-3521ca011fa0" size="200">
+						<salesforce:update type="#[vars.sObject]" doc:name="Update Record" doc:id="382897f4-0815-4949-87f5-fd9802f8b827" config-ref="Salesforce_Config" />
+						<ee:transform doc:name="Mapping Salesforce Response" doc:id="2b4d1cc7-625a-44d1-9eb5-cda74506d915">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.items map {
+    id:$.id,
+    success:$.successful,
+    (field:$.errors[0].fields[0]) if $.successful == false,  
+    (message:$.errors[0].message) if $.successful == false,
+    (statusCode:$.errors[0].statusCode) if $.successful == false
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+						<logger level="INFO" doc:name="Logger" doc:id="4dc87370-a138-472d-af1a-3ee546e299e3" message="#[payload]" />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="c2ba98e6-995d-4aab-bcb0-955175aa2c54" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+	<flow name="upsert-salesforce-records-batch" doc:id="f11b2fb4-4d2c-4952-af4d-972c54051d04" >
+		<batch:job jobName="batch-processingBatch_Job1" doc:id="193cd6ef-230a-40ae-a33a-56e1324f3fd1" >
+			<batch:process-records >
+				<batch:step name="Batch_Step1" doc:id="447b68a6-df02-4481-9254-5dec40c36b61" >
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="075fceb4-3d56-4ad8-bc96-556fc39a1bdd" size="200">
+						<salesforce:upsert objectType="#[vars.sObject]" externalIdFieldName="#[vars.externalId]" doc:name="Upsert Records" doc:id="2055bf02-4c90-46d6-8a50-cda12051ae45" config-ref="Salesforce_Config" />
+						<ee:transform doc:name="Transform Message" doc:id="c16ca296-f803-47c6-8c21-27d57791d153">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.items map {
+    id:$.id,
+    success:$.successful,
+    (field:$.errors[0].fields[0]) if $.successful == false,  
+    (message:$.errors[0].message) if $.successful == false,
+    (statusCode:$.errors[0].statusCode) if $.successful == false
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+						<logger level="INFO" doc:name="Logger" doc:id="4fff9830-8fed-4a32-b555-5da397da6e74" message="#[payload]" />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="de836f15-48e8-463b-8d3f-339725b2bd64" />
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>

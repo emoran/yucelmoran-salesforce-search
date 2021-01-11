@@ -1,0 +1,5 @@
+sfdc:
+   username: "username"
+   password: "Password"
+   token: "Token"
+   url: "https://login.salesforce.com/services/Soap/u/48.0"
